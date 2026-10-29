@@ -71,43 +71,24 @@ class LocalLLMProvider(LLMProvider):
     """LLM provider using a local server (e.g., ollama)"""
     
     def __init__(self, model="gemma3:1b", server_url="http://localhost:11434", max_tokens=1024, 
-            system="You are a helpful assistant. Carefully follow the user's instructions.", timeout=120):
+            system="You are a helpful assistant. Carefully follow the user's instructions."):
+        self.client = openai.OpenAI(base_url=server_url, api_key="unused")
         self.model = model
-        self.server_url = server_url
         self.max_tokens = max_tokens
         self.system = system
-        self.timeout = timeout
     
     def complete(self, messages, max_tokens=None, temperature=0.7):
         if max_tokens is None:
             max_tokens = self.max_tokens
         full_messages = [{"role": "system", "content": self.system}] + messages
-        
-        try:
-            response = requests.post(
-                f"{self.server_url}/v1/chat/completions",
-                json={
-                    "model": self.model,
-                    "messages": full_messages,
-                    "max_tokens": max_tokens,
-                    "temperature": temperature
-                },
-                timeout=self.timeout
-            )
-            if response.status_code == 200:
-                return response.json()["choices"][0]["message"]["content"]
-            else:
-                logging.error(f"Error from LLM server: {response.status_code} {response.text}")
-                return f"Error: {response.status_code} {response.text}"
-        except requests.exceptions.Timeout:
-            logging.error(f"Request timed out after {self.timeout} seconds")
-            return f"Error: Request timed out after {self.timeout} seconds"
-        except requests.exceptions.ConnectionError as e:
-            logging.error(f"Connection error: {e}")
-            return f"Error: Cannot connect to {self.server_url}. Make sure ollama is running."
-        except Exception as e:
-            logging.error(f"Unexpected error: {e}")
-            return f"Error: {e}"
+        response = self.client.chat.completions.create(
+            model=self.model,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            messages=full_messages,
+            stream=False  # some models default to streaming
+        )
+        return response.choices[0].message.content
 
 # Conversation manager for handling history
 class ConversationManager:

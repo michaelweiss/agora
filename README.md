@@ -68,7 +68,7 @@ class NewsRetrieverAgent(Agent):
         return news
 ```
 
-We can feed the output of the news retriever to the summarizer by setting up a controller and add the agents. All that is left to do is to set up the blackboard and update its `rss-feed` slot with the URL of the RSS feed. Then we can start the controller. This is the code:
+We can feed the output of the news retriever to the summarizer by setting up a controller and add the agents. All that is left to do is to set up the blackboard and update its `rss-feed` slot with the URL of the RSS feed. Then we can start the controller. The controller will stop once the `summary` slot has been filled or after three iterations.
 
 ```python
 blackboard = Blackboard({
