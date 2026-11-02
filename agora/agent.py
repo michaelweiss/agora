@@ -86,7 +86,7 @@ class Controller:
         """
         Run until the solution is found or max_iterations has been reached.
         """
-        workflow = self.stream_events(max_iterations=5)
+        workflow = self.stream_events(max_iterations=max_iterations)
         try:
             event = next(workflow)
             while True:

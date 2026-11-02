@@ -15,7 +15,7 @@ def test_conversation_manager():
     response2 = llm.complete("What's the weather like there in the Fall?")
     print("Response 2:", response2)
     history = llm.get_history()
-    assert len(history) == 3  # only the last 3 messages are kept
+    assert len(history) == min(3, 4)  # only the last 3 messages are kept
 
 def test_local_llm_provider():
     print("test_local_llm_provider")
