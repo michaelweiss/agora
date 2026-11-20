@@ -1,0 +1,13 @@
+role: Summarizer
+description: "Summarizes the given text"
+in_slots: [text]
+out_slots: [summary]
+prompt: |
+  Summarize the following text in a few words:
+  {text}
+  Output:
+  ```json
+  {{
+    "summary": "summary of the text"
+  }}
+  ```
