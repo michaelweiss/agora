@@ -1,5 +1,5 @@
-from agora.agent import Agent, Blackboard, Controller
-from agora.llm import LLMProvider, ClaudeLLMProvider, ResultParser
+from .agent import Agent, Blackboard, Controller
+from .llm import LLMProvider, ClaudeLLMProvider, ResultParser
 
 class TaskAgent(Agent):
     """Task agent that performs a specific task using prompt."""
