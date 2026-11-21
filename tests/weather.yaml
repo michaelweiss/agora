@@ -1,0 +1,5 @@
+role: Weather
+description: Get the weather for a given location
+in_slots: [location]
+out_slots: [weather]
+tool: get_weather

@@ -5,7 +5,7 @@ import logging
 from .llm import LLMProvider, ClaudeLLMProvider, ChatgptLLMProvider
 
 class Blackboard:
-    def __init__(self, data):
+    def __init__(self, data={}):
         self.data = data
         self.lock = threading.Lock()
 

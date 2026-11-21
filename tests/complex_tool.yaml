@@ -1,0 +1,5 @@
+role: Complex Tool
+description: Perform an action with multiple inputs and outputs
+in_slots: [input1, input2]
+out_slots: [output1, output2]
+tool: complex_tool
