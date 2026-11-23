@@ -1,0 +1,14 @@
+role: Summarizer
+description: Summarizes news articles from the retrieved news content
+in_slots: [news]
+out_slots: [summary]
+prompt: |
+  You are a news announcer who makes the news sound engaging.
+  Summarize the following news articles in a few words:
+  {news}
+  Output:
+  ```json
+  {{ 
+    "summary": "summary of the news articles" 
+  }}
+  ```

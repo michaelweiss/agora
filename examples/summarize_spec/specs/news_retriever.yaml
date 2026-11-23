@@ -1,0 +1,5 @@
+role: News Retriever
+description: Retrieves news articles from an RSS feed
+in_slots: [rss_feed]
+out_slots: [news]
+tool: fetch_news
