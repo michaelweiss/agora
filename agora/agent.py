@@ -4,32 +4,41 @@ import logging
 
 from .llm import LLMProvider, ClaudeLLMProvider, ChatgptLLMProvider
 
+logger = logging.getLogger("agora")
+
+class AgentError(Exception):
+    """Raised when an agent cannot produce a valid result"""
+
 class Blackboard:
-    def __init__(self, data={}):
-        self.data = data
+    """Blackboard for storing shared data among agents"""
+
+    def __init__(self, data=None):
+        self.data = data if data is not None else {}
         self.lock = threading.Lock()
 
     def update(self, key, value):
         """Add or update an item on the blackboard"""
         with self.lock:
             self.data[key] = value
-            # logging.info(f"Update {key}: {value}")
+            logger.debug("Update %s: %s", key, value)
 
     def get(self, key, default=None):
         """Get an item from the blackboard"""
         with self.lock:
             value = self.data.get(key, default)
-            # logging.info(f"Get {key}: {value}")
+            logger.debug("Get %s: %s", key, value)
             return value
-        
+
     def take(self, key):
         """Get and remove an item from the blackboard"""
         with self.lock:
             value = self.data.pop(key, None)
-            # logging.info(f"Take {key}: {value}")
+            logger.debug("Take %s: %s", key, value)
             return value
 
 class Agent:
+    """Base class for all agents"""
+
     def __init__(self, name, llm_provider=None):
         self.name = name
         self.llm_provider = llm_provider
@@ -47,11 +56,13 @@ class Agent:
         raise NotImplementedError("Subclasses should implement this")
 
 class Controller:
+    """Controller for managing agent execution"""
+
     def __init__(self, blackboard, solution_topic):
         self.blackboard = blackboard
         self.agents = []
         self.solution_topic = solution_topic
-        
+
     def add_agent(self, agent):
         self.agents.append(agent)
 
@@ -66,6 +77,7 @@ class Controller:
                 if agent.can_execute(self.blackboard):
                     input_request = agent.needs_human_input(self.blackboard)
                     if input_request:
+                        logger.info("%s asks for human input", agent.name)
                         user_input = yield {
                             "type": "input_needed",
                             "agent": agent.name,
@@ -73,7 +85,14 @@ class Controller:
                         }
                     else:
                         user_input = None
-                    agent.execute(self.blackboard, user_input=user_input)
+                    logger.info("Iteration %d: running %s", iteration, agent.name)
+                    start = time.time()
+                    try:
+                        agent.execute(self.blackboard, user_input=user_input)
+                    except Exception:
+                        logger.exception("%s failed", agent.name)
+                        raise
+                    logger.info("%s took %.1fs", agent.name, time.time() - start)
                     yield {
                         "type": "status",
                         "iteration": iteration,
@@ -81,6 +100,8 @@ class Controller:
                     }
             if iteration >= max_iterations:
                 break
+        if self.blackboard.get(self.solution_topic) is None:
+            logger.warning("No %s after %d iterations", self.solution_topic, iteration)
 
     def run(self, max_iterations=5):
         """

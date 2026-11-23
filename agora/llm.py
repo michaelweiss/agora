@@ -7,6 +7,8 @@ import requests
 import anthropic
 import openai
 
+logger = logging.getLogger("agora")
+
 # LLM provider interface
 class LLMProvider():
     """Base class for LLM providers"""
@@ -43,8 +45,14 @@ class ClaudeLLMProvider(LLMProvider):
             system=self.system,
             messages=messages
         )
+        self._log_usage(response)
         return response.content[0].text
 
+    def _log_usage(self, response):
+        logger.debug("%s: %d input tokens, %d output tokens, stop: %s", self.model,
+            response.usage.input_tokens, response.usage.output_tokens,
+            response.stop_reason)
+            
 class ChatgptLLMProvider(LLMProvider):
     """LLM provider using OpenAI's GPT models"""
 
@@ -65,8 +73,13 @@ class ChatgptLLMProvider(LLMProvider):
             temperature=temperature,
             messages=full_messages
         )
+        self._log_usage(response)
         return response.choices[0].message.content
-    
+
+    def _log_usage(self, response):
+        logger.debug("%s: %d input tokens, %d output tokens", self.model,
+            response.usage.prompt_tokens, response.usage.completion_tokens)
+
 class LocalLLMProvider(LLMProvider):
     """LLM provider using a local server (e.g., ollama)"""
     

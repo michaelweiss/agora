@@ -3,11 +3,15 @@ Build agents from yaml specs. An agent spec is a mapping with `role`, `in_slots`
 `out_slots` and either `prompt` (task agent) or `tool` (tool agent).
 """
 
+import logging
+
 import yaml
 
 from .llm import ClaudeLLMProvider
 from .roles import TaskAgent, ToolAgent
 from .tools import lookup
+
+logger = logging.getLogger("agora")
 
 def load_yaml(path):
     """Safely load a yaml file."""
@@ -27,6 +31,7 @@ def load_agent(file_path, llm_provider=None):
         "in_slots": spec["in_slots"],
         "out_slots": spec["out_slots"]
     }
+    logger.debug("Loaded %s agent from %s", spec["role"], file_path)
     if "tool" in spec:
         return ToolAgent(tool=lookup(spec["tool"]), **common)
     else:
